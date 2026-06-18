@@ -2089,6 +2089,7 @@ body[data-theme="white"] .date-lite-month { color:#11314f; }
     <div class="vault-card" style="--v-glow:#7dd3fc"><div class="vault-lbl" data-i18n="vault.import">Import backup</div><div class="vault-val">JSON</div><div class="vault-sub" data-i18n="vault.import.sub">Restore a saved backup</div><button class="data-btn" id="importBackupBtn" data-i18n="btn.import">⬆ Import JSON backup</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>
     <div class="vault-card danger" style="--v-glow:#f87171"><div class="vault-lbl" data-i18n="vault.reset">Reset data</div><div class="vault-val" data-i18n="vault.reset.short">Reset</div><div class="vault-sub" data-i18n="vault.reset.sub">Danger zone</div><button class="data-btn danger" id="resetDataBtn" data-i18n="btn.reset">🗑 Reset data</button></div>
     <div class="vault-card" style="--v-glow:#38b6ff"><div class="vault-lbl" data-i18n="vault.app">App</div><div class="vault-val">PWA</div><div class="vault-sub" data-i18n="vault.app.sub">Install on your phone</div><button class="data-btn" id="pwaInstallBtn" style="display:none" data-i18n="btn.install">📲 Install app</button></div>
+    <div class="vault-card" style="--v-glow:#fbbf24"><div class="vault-lbl" data-i18n="vault.drive">Google Drive</div><div class="vault-val" style="display:flex;align-items:center;gap:8px;font-size:0.95rem"><span id="driveDot" style="width:11px;height:11px;border-radius:50%;background:#64748b;box-shadow:0 0 10px #64748b;flex:0 0 auto"></span><span id="driveStatusText">Non collegato</span></div><div class="vault-sub" id="driveStatusSub" data-i18n="vault.drive.sub">Sync between Mac and iPhone</div><button class="data-btn" id="driveConnectBtn" data-i18n="btn.driveConnect">🔗 Connect Google Drive</button><button class="data-btn" id="driveSyncNowBtn" style="display:none" data-i18n="btn.driveSyncNow">🔄 Sync now</button><button class="data-btn" id="driveDisconnectBtn" style="display:none" data-i18n="btn.driveDisconnect">✖ Disconnect</button><button class="data-btn" id="driveSetupBtn" data-i18n="btn.driveSetup">⚙ Set Client ID</button></div>
   </div>
 
   <div class="contacts contacts-premium">
@@ -2322,6 +2323,12 @@ const I18N = {
   "vault.app": { it: "App", en: "App" },
   "vault.app.sub": { it: "Installa sul telefono", en: "Install on your phone" },
   "btn.install": { it: "📲 Installa app", en: "📲 Install app" },
+  "vault.drive": { it: "Google Drive", en: "Google Drive" },
+  "vault.drive.sub": { it: "Sincronizza tra Mac e iPhone", en: "Sync between Mac and iPhone" },
+  "btn.driveConnect": { it: "🔗 Collega Google Drive", en: "🔗 Connect Google Drive" },
+  "btn.driveSyncNow": { it: "🔄 Sincronizza ora", en: "🔄 Sync now" },
+  "btn.driveDisconnect": { it: "✖ Scollega", en: "✖ Disconnect" },
+  "btn.driveSetup": { it: "⚙ Imposta Client ID", en: "⚙ Set Client ID" },
   "bulk.btn": { it: "+ Aggiunta multipla", en: "+ Bulk Add" },
   "bulk.title": { it: "AGGIUNTA MULTIPLA", en: "BULK ADD WORKS" },
   "bulk.help": { it: "Una riga per lavoro: CLIENTE — TIPOLOGIA — nota opzionale", en: "One line per work: CLIENT — TYPE — optional note" },
