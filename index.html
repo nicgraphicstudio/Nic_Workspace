@@ -368,6 +368,12 @@
   .search-wrap input { transition: padding .25s ease, font-size .25s ease, border-color .15s; }
   .hicon { transition: background .15s, transform .1s, box-shadow .15s, width .25s ease, height .25s ease; }
   body.scrolled .header-inner { padding: 6px 16px; }
+  @supports (padding: max(0px)) {
+    body.scrolled .header-inner {
+      padding-top: max(6px, env(safe-area-inset-top)) !important;
+      padding-bottom: 6px !important;
+    }
+  }
   body.scrolled .logo-neon { width: 38px; height: 38px; }
   body.scrolled .search-wrap input { padding: 7px 14px; font-size: 12px; }
   body.scrolled .hicon { width: 34px; height: 34px; }
@@ -1945,6 +1951,67 @@ body[data-theme="white"] .date-lite-month { color:#11314f; }
 .date-lite-today { min-height: 34px; }
 .ow-datebtn { display:flex; align-items:center; gap:8px; justify-content:flex-start; }
 
+/* ---------- File picker custom (niente più "Scegli file" del browser) ---------- */
+.file-picker { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.file-picker-input { position:absolute !important; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; }
+.file-picker-btn {
+  display:inline-flex; align-items:center; gap:9px; cursor:pointer;
+  padding:11px 17px; border-radius:13px; font-size:13.5px; font-weight:700; letter-spacing:.3px;
+  color:#eaf6ff; background:var(--glass); border:1px solid var(--glass-border);
+  box-shadow:0 6px 18px rgba(0,8,24,.28), inset 0 1px 0 rgba(255,255,255,.16);
+  transition:background .15s ease, transform .12s ease, border-color .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.file-picker-btn:hover { background:var(--glass-strong); border-color:rgba(125,211,252,.4); }
+.file-picker-btn:active { transform:scale(.97); }
+.file-picker-btn.dragover {
+  background:rgba(125,211,252,.16); border-color:rgba(125,211,252,.7);
+  box-shadow:0 0 0 3px rgba(125,211,252,.18), 0 6px 18px rgba(0,8,24,.3);
+  transform:scale(1.02);
+}
+.file-picker-ico { display:flex; }
+.file-picker-ico svg { width:17px; height:17px; color:#7dd3fc; }
+.file-picker-name { font-size:13px; color:var(--text); word-break:break-all; }
+.file-picker-name.empty { color:var(--muted); }
+body[data-theme="white"] .file-picker-btn { color:#11314f; }
+
+/* ---------- Safe-area iPhone: non finire sotto notch / barra inferiore ---------- */
+@supports (padding: max(0px)) {
+  header .header-inner {
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
+    padding-left: max(20px, env(safe-area-inset-left)) !important;
+    padding-right: max(20px, env(safe-area-inset-right)) !important;
+  }
+  main {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(48px, calc(env(safe-area-inset-bottom) + 24px));
+  }
+  .page-bar {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .page-content { padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 30px)); }
+  /* il FAB Focus non deve finire sotto la barra home */
+  .focus-fab { bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px)) !important; }
+}
+/* In modalità "app installata" (standalone) do un po' più di respiro in alto */
+@media (display-mode: standalone) {
+  header .header-inner { padding-top: max(16px, env(safe-area-inset-top)) !important; }
+}
+
+/* ---------- Nascondi le scrollbar laterali (lo scroll resta attivo) ---------- */
+.modal, .modal-overlay, .page-view, .focus-view, .focus-inner {
+  scrollbar-width: none !important;        /* Firefox */
+  -ms-overflow-style: none !important;     /* IE/Edge legacy */
+}
+.modal::-webkit-scrollbar,
+.modal-overlay::-webkit-scrollbar,
+.page-view::-webkit-scrollbar,
+.focus-view::-webkit-scrollbar,
+.focus-inner::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+
 </style>
 </head>
 <body>
@@ -2379,6 +2446,8 @@ const I18N = {
   "vault.drive.sub": { it: "Sincronizza tra Mac e iPhone", en: "Sync between Mac and iPhone" },
   "btn.driveConnect": { it: "🔗 Collega Google Drive", en: "🔗 Connect Google Drive" },
   "btn.driveSyncNow": { it: "🔄 Sincronizza ora", en: "🔄 Sync now" },
+  "file.choose": { it: "Scegli immagine", en: "Choose image" },
+  "file.none": { it: "Nessun file scelto", en: "No file chosen" },
   "btn.driveDisconnect": { it: "✖ Scollega", en: "✖ Disconnect" },
   "btn.driveSetup": { it: "⚙ Imposta Client ID", en: "⚙ Set Client ID" },
   "bulk.btn": { it: "+ Aggiunta multipla", en: "+ Bulk Add" },
@@ -3443,23 +3512,33 @@ function playSfx(type) {
   if (!soundFx) return;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // ogni nota: f=freq, t=offset sec, d=durata, w=waveform(opz), v=volume(opz), f2=glide verso (opz)
     const patterns = {
-      done:    [{ f: 720, t: 0.00, d: 0.10 }, { f: 960, t: 0.08, d: 0.12 }],
-      pay:     [{ f: 880, t: 0.00, d: 0.09 }, { f: 1180, t: 0.08, d: 0.13 }, { f: 1480, t: 0.18, d: 0.10 }],
-      deposit: [{ f: 540, t: 0.00, d: 0.12 }, { f: 760, t: 0.10, d: 0.12 }],
+      // completamento lavoro: tris ascendente netto e "pulito"
+      done:    [{ f: 740, t: 0.00, d: 0.09 }, { f: 990, t: 0.07, d: 0.09 }, { f: 1320, t: 0.15, d: 0.16, v: 0.05 }],
+      // PAID: "ka-ching" da cassa — due colpi brillanti ravvicinati
+      pay:     [{ f: 1180, t: 0.00, d: 0.07, w: "triangle", v: 0.06 }, { f: 1560, t: 0.05, d: 0.07, w: "triangle", v: 0.06 }, { f: 2080, t: 0.11, d: 0.22, w: "triangle", v: 0.05 }],
+      // DEPOSIT: "soldi" più morbido e basso — due note calde, niente brillantezza da cassa
+      deposit: [{ f: 480, t: 0.00, d: 0.12, w: "triangle", v: 0.06 }, { f: 720, t: 0.10, d: 0.20, w: "triangle", v: 0.055 }],
       client:  [{ f: 620, t: 0.00, d: 0.10 }, { f: 820, t: 0.09, d: 0.12 }],
       ach:     [{ f: 740, t: 0.00, d: 0.10 }, { f: 980, t: 0.09, d: 0.10 }, { f: 1320, t: 0.18, d: 0.18 }],
       focus:   [{ f: 420, t: 0.00, d: 0.16 }, { f: 560, t: 0.12, d: 0.18 }],
       gallery: [{ f: 690, t: 0.00, d: 0.10 }, { f: 920, t: 0.08, d: 0.13 }],
+      // Client League: breve "rev" da motore — sweep che sale come una partenza
+      league:  [{ f: 180, t: 0.00, d: 0.26, w: "sawtooth", v: 0.05, f2: 760 }, { f: 900, t: 0.22, d: 0.12, w: "square", v: 0.035 }],
+      // apertura scheda cliente nel recap: blip soft e discreto
+      clientcard: [{ f: 560, t: 0.00, d: 0.07, w: "sine", v: 0.035 }, { f: 840, t: 0.05, d: 0.10, v: 0.03 }],
       error:   [{ f: 220, t: 0.00, d: 0.18 }]
     };
     (patterns[type] || [{ f: 700, t: 0, d: .14 }]).forEach(n => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.frequency.value = n.f;
-      osc.type = type === "error" ? "sawtooth" : "sine";
+      osc.type = n.w || (type === "error" ? "sawtooth" : "sine");
+      osc.frequency.setValueAtTime(n.f, ctx.currentTime + n.t);
+      if (n.f2) osc.frequency.exponentialRampToValueAtTime(n.f2, ctx.currentTime + n.t + n.d);
+      const peak = n.v != null ? n.v : (type === "pay" || type === "ach" ? 0.055 : 0.038);
       gain.gain.setValueAtTime(0.0001, ctx.currentTime + n.t);
-      gain.gain.exponentialRampToValueAtTime(type === "pay" || type === "ach" ? 0.055 : 0.038, ctx.currentTime + n.t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(peak, ctx.currentTime + n.t + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + n.t + n.d);
       osc.connect(gain); gain.connect(ctx.destination);
       osc.start(ctx.currentTime + n.t); osc.stop(ctx.currentTime + n.t + n.d + 0.02);
@@ -3535,6 +3614,59 @@ function compressGalleryImage(file, maxW = 1400, quality = 0.80) {
     reader.onerror = () => resolve("");
     reader.readAsDataURL(file);
   });
+}
+// File picker custom (sostituisce l'input file nativo del browser, che mostra
+// testo non traducibile tipo "Scegli file / Nessun file selezionato").
+function makeFilePicker(accept){
+  const wrap = document.createElement("div");
+  wrap.className = "file-picker";
+  const input = document.createElement("input");
+  input.type = "file";
+  if (accept) input.accept = accept;
+  input.className = "file-picker-input";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "file-picker-btn";
+  const ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>';
+  const name = document.createElement("span");
+  name.className = "file-picker-name";
+  const setEmpty = () => { name.textContent = t("file.none"); name.classList.add("empty"); };
+  setEmpty();
+  btn.innerHTML = '<span class="file-picker-ico">' + ico + '</span><span class="file-picker-label">' + t("file.choose") + '</span>';
+  btn.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => {
+    if (input.files && input.files[0]) { name.textContent = input.files[0].name; name.classList.remove("empty"); }
+    else setEmpty();
+  });
+  // Drag & drop: trascina un'immagine direttamente sul pulsante
+  const acceptsFile = (file) => {
+    if (!file) return false;
+    if (!accept || accept === "image/*") return file.type.startsWith("image/");
+    return true;
+  };
+  ["dragenter", "dragover"].forEach(ev => {
+    btn.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); btn.classList.add("dragover"); });
+  });
+  ["dragleave", "dragend"].forEach(ev => {
+    btn.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); btn.classList.remove("dragover"); });
+  });
+  btn.addEventListener("drop", (e) => {
+    e.preventDefault(); e.stopPropagation(); btn.classList.remove("dragover");
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (acceptsFile(file)) {
+      // assegno il file droppato all'input nascosto, così il resto del codice lo legge da input.files
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+      } catch (err) { /* alcuni browser non supportano DataTransfer scrivibile */ }
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+  wrap.appendChild(input);
+  wrap.appendChild(btn);
+  wrap.appendChild(name);
+  return { wrap, input };
 }
 function galleryFullIconHTML(){
   return '<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><path d="M23 72.891c-.691.852-1.949.98-2.809.281-.851-.699-.98-1.96-.281-2.809l13.602-16.602c.66-.781 1.441-1.39 2.308-1.8.922-.449 1.942-.68 3.032-.699 1.089-.012 2.109.199 3.031.621.929.422 1.769 1.051 2.48 1.879l6.301 7.328c.32.371.679.648 1.07.828.379.172.828.262 1.328.262s.949-.09 1.328-.262c.391-.18.75-.461 1.059-.828.71-.82 1.558-1.449 2.511-1.871.93-.41 1.961-.621 3.059-.59 1.172.02 2.27.309 3.231.828.98.52 1.82 1.27 2.48 2.23l6.3 9.031c.629.898.41 2.148-.5 2.781-.91.629-2.148.41-2.781-.5l-6.3-9.031c-.301-.441-.672-.781-1.09-1-.421-.219-.898-.352-1.422-.36-.488-.011-.961.078-1.371.262-.398.18-.769.461-1.078.82-.699.809-1.519 1.43-2.441 1.852-.93.43-1.93.641-2.988.641s-2.059-.211-2.989-.641c-.921-.422-1.738-1.051-2.441-1.86l-6.3-7.328c-.32-.371-.691-.648-1.09-.828-.41-.18-.859-.281-1.351-.27-.48 0-.93.109-1.328.301-.371.18-.711.43-1 .77L23 72.891Zm1.52-57.641c.238-1.859 1.089-3.531 2.359-4.801 1.5-1.488 3.558-2.421 5.828-2.421h56.031c2.269 0 4.34.93 5.84 2.422 1.488 1.5 2.422 3.57 2.422 5.84v45.968c0 2.27-.93 4.34-2.422 5.828-1.269 1.27-2.941 2.122-4.801 2.36-.23 1.859-1.089 3.53-2.359 4.789-1.269 1.281-2.961 2.14-4.84 2.371-.238 1.84-1.101 3.5-2.351 4.75-1.25 1.25-2.898 2.11-4.738 2.352-.23 1.879-1.101 3.558-2.371 4.84-1.5 1.488-3.558 2.421-5.84 2.421h-56.02c-2.269 0-4.34-.93-5.84-2.421-1.488-1.5-2.422-3.571-2.422-5.84V37.7c0-2.27.93-4.34 2.422-5.828 1.281-1.282 2.969-2.141 4.852-2.372.238-1.828 1.101-3.488 2.351-4.738 1.262-1.262 2.91-2.11 4.738-2.36.23-1.87 1.09-3.558 2.371-4.827 1.262-1.27 2.93-2.129 4.789-2.36Zm65.328 51.121c.73-.199 1.379-.59 1.899-1.109.769-.77 1.25-1.828 1.25-3V16.293c0-1.172-.481-2.239-1.25-3.012-.77-.769-1.84-1.25-3.012-1.25H32.707c-1.16 0-2.23.481-3 1.25-.52.52-.91 1.172-1.109 1.899h52.988c2.269 0 4.34.93 5.828 2.43 1.5 1.488 2.43 3.558 2.43 5.828v42.93Zm-79.648-32.75c-.75.191-1.422.578-1.95 1.121-.769.769-1.25 1.84-1.25 3v45.969c0 1.172.481 2.238 1.25 3.012.77.769 1.84 1.25 3.012 1.25h56.02c1.172 0 2.238-.481 3.012-1.25.531-.531.922-1.2 1.121-1.942H19.15c-2.262 0-4.328-.93-5.82-2.422l-.02-.012C11.822 80.878 10.9 78.82 10.9 76.559V33.648Zm72.449 39.91c.75-.191 1.422-.578 1.95-1.11.769-.78 1.25-1.839 1.25-3.011v-45.97c0-1.171-.481-2.23-1.25-3.011-.781-.769-1.84-1.25-3.012-1.25H25.556c-1.171 0-2.23.481-3.011 1.25-.52.531-.922 1.2-1.11 1.942h52.962c2.261 0 4.328.929 5.82 2.421 1.5 1.5 2.43 3.571 2.43 5.829v42.91Zm-8.25-47.16H18.449c-1.172 0-2.239.481-3.012 1.25-.769.769-1.25 1.828-1.25 3v45.91c0 1.172.481 2.238 1.25 3 .769.781 1.828 1.25 3.012 1.25h55.949c1.172 0 2.23-.481 3-1.25.769-.769 1.25-1.828 1.25-3v-45.91c0-1.172-.469-2.23-1.238-3-.77-.769-1.84-1.25-3.012-1.25Z"/></svg>';
@@ -3644,7 +3776,7 @@ function openGalleryAdd(clientId){
     const f2=document.createElement("div"); f2.className="pm-field"; f2.innerHTML='<label>'+t("gallery.worktitle")+'</label>'; const title=document.createElement("input"); title.type="text"; f2.appendChild(title); box.appendChild(f2);
     const f3=document.createElement("div"); f3.className="pm-field"; f3.innerHTML='<label>'+t("cal.type")+'</label>'; const selT=document.createElement("select"); CATS.forEach(cat=>{const o=document.createElement("option"); o.value=cat.id; o.textContent=tc(cat.name); selT.appendChild(o);}); f3.appendChild(selT); box.appendChild(f3);
     const f4=document.createElement("div"); f4.className="pm-field"; f4.innerHTML='<label>'+t("cal.pickdate")+'</label>'; let pickedDateTs = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 12, 0, 0).getTime(); const dateBtn=document.createElement("button"); dateBtn.type="button"; dateBtn.className="date-lite-btn"; const updateGalleryDate=()=>{ dateBtn.innerHTML='<span class="date-icon">📅</span><span>'+fmtDate(pickedDateTs)+'</span>'; }; updateGalleryDate(); dateBtn.addEventListener("click",()=>openDatePicker(dateBtn, pickedDateTs, ts=>{ pickedDateTs=ts; updateGalleryDate(); })); f4.appendChild(dateBtn); box.appendChild(f4);
-    const f5=document.createElement("div"); f5.className="pm-field"; f5.innerHTML='<label>'+t("gallery.image")+'</label>'; const img=document.createElement("input"); img.type="file"; img.accept="image/*"; f5.appendChild(img); box.appendChild(f5);
+    const f5=document.createElement("div"); f5.className="pm-field"; f5.innerHTML='<label>'+t("gallery.image")+'</label>'; const img=makeFilePicker("image/*"); f5.appendChild(img.wrap); box.appendChild(f5);
     const f6=document.createElement("div"); f6.className="pm-field"; f6.innerHTML='<label>'+t("gallery.link")+'</label>'; const link=document.createElement("input"); link.type="url"; link.placeholder="https://"; f6.appendChild(link); box.appendChild(f6);
     const btn=document.createElement("button"); btn.className="pm-confirm"; btn.textContent=t("gallery.save");
     btn.onclick = async ()=>{
@@ -3658,7 +3790,7 @@ function openGalleryAdd(clientId){
       btn.textContent = lang === "it" ? "Salvataggio…" : "Saving…";
       let imageData = "";
       try {
-        imageData = img.files && img.files[0] ? await compressGalleryImage(img.files[0]) : "";
+        imageData = img.input.files && img.input.files[0] ? await compressGalleryImage(img.input.files[0]) : "";
       } catch(e) { btn.disabled = false; btn.textContent = t("gallery.save"); return; }
       const id = newId();
       const item = { id, client:selC.value, title:title.value.trim()||"Untitled", cat:selT.value, date:pickedDateTs, imgRef:"", link:link.value.trim() };
@@ -3686,7 +3818,7 @@ function openGalleryEdit(itemId){
     const f2=document.createElement("div"); f2.className="pm-field"; f2.innerHTML='<label>'+t("gallery.worktitle")+'</label>'; const title=document.createElement("input"); title.type="text"; title.value=current.title || ""; f2.appendChild(title); box.appendChild(f2);
     const f3=document.createElement("div"); f3.className="pm-field"; f3.innerHTML='<label>'+t("cal.type")+'</label>'; const selT=document.createElement("select"); CATS.forEach(cat=>{const o=document.createElement("option"); o.value=cat.id; o.textContent=tc(cat.name); selT.appendChild(o);}); selT.value=current.cat || DEFAULT_CAT; f3.appendChild(selT); box.appendChild(f3);
     const f4=document.createElement("div"); f4.className="pm-field"; f4.innerHTML='<label>'+t("cal.pickdate")+'</label>'; let pickedDateTs = current.date || Date.now(); const dateBtn=document.createElement("button"); dateBtn.type="button"; dateBtn.className="date-lite-btn"; const updateGalleryDate=()=>{ dateBtn.innerHTML='<span class="date-icon">📅</span><span>'+fmtDate(pickedDateTs)+'</span>'; }; updateGalleryDate(); dateBtn.addEventListener("click",()=>openDatePicker(dateBtn, pickedDateTs, ts=>{ pickedDateTs=ts; updateGalleryDate(); })); f4.appendChild(dateBtn); box.appendChild(f4);
-    const f5=document.createElement("div"); f5.className="pm-field"; f5.innerHTML='<label>'+t("gallery.replaceimg")+'</label>'; const img=document.createElement("input"); img.type="file"; img.accept="image/*"; f5.appendChild(img); box.appendChild(f5);
+    const f5=document.createElement("div"); f5.className="pm-field"; f5.innerHTML='<label>'+t("gallery.replaceimg")+'</label>'; const img=makeFilePicker("image/*"); f5.appendChild(img.wrap); box.appendChild(f5);
     const f6=document.createElement("div"); f6.className="pm-field"; f6.innerHTML='<label>'+t("gallery.link")+'</label>'; const link=document.createElement("input"); link.type="url"; link.placeholder="https://"; link.value=current.link || ""; f6.appendChild(link); box.appendChild(f6);
     const saveBtn=document.createElement("button"); saveBtn.className="pm-confirm"; saveBtn.textContent=t("gallery.savechanges");
     saveBtn.onclick = async ()=>{
@@ -3695,9 +3827,9 @@ function openGalleryEdit(itemId){
       const old = galleryItems[idx];
       let imgRef = old.imgRef || "";
       // se l'utente carica una nuova immagine, comprimi e salvala in IndexedDB
-      if (img.files && img.files[0]) {
+      if (img.input.files && img.input.files[0]) {
         let newImage = "";
-        try { newImage = await compressGalleryImage(img.files[0]); }
+        try { newImage = await compressGalleryImage(img.input.files[0]); }
         catch(e) { saveBtn.disabled = false; saveBtn.textContent = t("gallery.savechanges"); return; }
         if (newImage) {
           const ref = old.imgRef || old.id || newId();
@@ -5503,6 +5635,7 @@ function modalHead(titleText, clientObj, iconName) {
 function openClientAnalytics(clientId) {
   const c = clientById(clientId);
   if (!c) return;
+  playSfx("clientcard");
   openPage(box => {
     const hero = document.createElement("div");
     hero.className = "client-hero";
@@ -5684,6 +5817,7 @@ const elPageContent = document.getElementById("pageContent");
 let currentPageBuilder = null;
 function openPage(build) {
   currentPageBuilder = build;
+  restoreVaultHost();              // metti al sicuro la griglia Vault prima di svuotare
   elPageContent.innerHTML = "";
   build(elPageContent);
   elPageView.hidden = false;
@@ -5693,6 +5827,7 @@ function openPage(build) {
 function refreshOpenPage() {
   if (elPageView.hidden || !currentPageBuilder) return;
   const prev = elPageView.scrollTop;
+  restoreVaultHost();              // idem: non lasciare che innerHTML="" distrugga la griglia
   elPageContent.innerHTML = "";
   currentPageBuilder(elPageContent);
   elPageView.scrollTop = prev;
@@ -5718,9 +5853,15 @@ function openDataVault() {
       + '<div><h2>' + t("vault.title") + '<span class="vp-sub">' + t("vault.sub") + '</span></h2></div>';
     box.appendChild(head);
     // sposto la griglia reale (non la clono: così i listener restano vivi)
-    const grid = document.getElementById("dataVault");
+    let grid = document.getElementById("dataVault");
+    if (!grid) {
+      // fallback di sicurezza: la griglia non è nel DOM, la cerco nell'host
+      const host = document.getElementById("vaultHost");
+      grid = host ? host.querySelector("#dataVault") : null;
+    }
     if (grid) box.appendChild(grid);
     if (typeof renderDataVault === "function") { try { renderDataVault(); } catch (e) {} }
+    if (typeof applyStaticI18n === "function") { try { applyStaticI18n(); } catch (e) {} }
   });
 }
 (function () {
@@ -5728,10 +5869,23 @@ function openDataVault() {
   if (btn) btn.addEventListener("click", openDataVault);
 })();
 
-// ---------- header compatto allo scroll ----------
-window.addEventListener("scroll", () => {
-  document.body.classList.toggle("scrolled", window.scrollY > 60);
-}, { passive: true });
+// ---------- header compatto allo scroll (con isteresi: niente sfarfallio) ----------
+(function(){
+  let scrolledState = false;
+  let ticking = false;
+  const ENTER = 90;  // diventa compatto solo dopo 90px
+  const EXIT = 30;   // torna grande solo sotto 30px (zona morta = niente rimbalzo)
+  function update(){
+    const y = window.scrollY || window.pageYOffset || 0;
+    if (!scrolledState && y > ENTER) { scrolledState = true; document.body.classList.add("scrolled"); }
+    else if (scrolledState && y < EXIT) { scrolledState = false; document.body.classList.remove("scrolled"); }
+    ticking = false;
+  }
+  window.addEventListener("scroll", () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
+})();
 
 // ---------- calendario mensile ----------
 let calRef = null; // primo giorno del mese visualizzato nel calendario
@@ -6045,6 +6199,7 @@ document.getElementById("earningsBtn").addEventListener("click", openEarnings);
 
 // ---------- Client League ----------
 function openLeague() {
+  playSfx("league");
   openPage(box => {
     box.appendChild(modalHead(t("league.title"), null, "trophy"));
 
@@ -6464,6 +6619,7 @@ const DRIVE = {
   FILE_NAME: "nic-workspace-sync.json",
   tokenClient: null, accessToken: null, fileId: null,
   ready: false, lastSyncedHash: null,
+  tokenExpiry: 0, refreshTimer: null, silentRetry: 0, reauthInFlight: null,
 };
 
 function driveSetStatus(state, detail){
@@ -6498,43 +6654,88 @@ function loadGsiScript(){
   });
 }
 
+function driveScheduleRefresh(){
+  if (DRIVE.refreshTimer) clearTimeout(DRIVE.refreshTimer);
+  // rinnovo il token ~5 min prima della scadenza, in modo silenzioso
+  const lead = 5 * 60 * 1000;
+  const wait = Math.max(30 * 1000, (DRIVE.tokenExpiry - Date.now()) - lead);
+  DRIVE.refreshTimer = setTimeout(() => {
+    if (localStorage.getItem("wwp:driveEnabled") && DRIVE.CLIENT_ID) {
+      driveConnect(false).catch(()=>{});
+    }
+  }, wait);
+}
+
 async function driveConnect(interactive){
   if (!DRIVE.CLIENT_ID) { openDriveSetup(); return; }
-  driveSetStatus("connecting");
+  if (interactive) driveSetStatus("connecting");
   try { await loadGsiScript(); }
-  catch(e) { driveSetStatus("error", lang==="it"?"Rete non disponibile":"Network unavailable"); return; }
+  catch(e) { driveSetStatus("error", lang==="it"?"Rete non disponibile":"Network unavailable"); throw e; }
   if (!DRIVE.tokenClient) {
     DRIVE.tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: DRIVE.CLIENT_ID,
       scope: DRIVE.SCOPE,
-      callback: async (resp) => {
-        if (resp.error) { driveSetStatus("error", resp.error); return; }
-        DRIVE.accessToken = resp.access_token;
-        DRIVE.ready = true;
-        localStorage.setItem("wwp:driveEnabled", "1");
-        updateDriveButtons();
-        await driveInitialSync();
-      },
+      callback: () => {}, // sovrascritto per ogni richiesta qui sotto
     });
   }
-  DRIVE.tokenClient.requestAccessToken({ prompt: interactive ? "consent" : "" });
+  // avvolgo la richiesta token in una Promise così chi chiama può attenderla
+  return new Promise((resolve, reject) => {
+    DRIVE.tokenClient.callback = async (resp) => {
+      if (resp && resp.error) {
+        // se la richiesta silenziosa fallisce, NON disconnetto: resto in attesa di un gesto utente
+        if (!interactive) { reject(new Error("silent-failed")); return; }
+        driveSetStatus("error", resp.error); reject(new Error(resp.error)); return;
+      }
+      DRIVE.accessToken = resp.access_token;
+      DRIVE.tokenExpiry = Date.now() + ((parseInt(resp.expires_in, 10) || 3600) * 1000);
+      DRIVE.ready = true;
+      DRIVE.silentRetry = 0;
+      localStorage.setItem("wwp:driveEnabled", "1");
+      driveScheduleRefresh();
+      updateDriveButtons();
+      resolve(resp);
+    };
+    try {
+      DRIVE.tokenClient.requestAccessToken({ prompt: interactive ? "consent" : "" });
+    } catch (e) { reject(e); }
+  });
+}
+
+// Assicura un token valido prima di una chiamata API; prova il refresh silenzioso se serve.
+async function driveEnsureToken(){
+  if (DRIVE.accessToken && Date.now() < DRIVE.tokenExpiry - 10000) return true;
+  if (!DRIVE.reauthInFlight) {
+    DRIVE.reauthInFlight = driveConnect(false).finally(() => { DRIVE.reauthInFlight = null; });
+  }
+  try { await DRIVE.reauthInFlight; return true; }
+  catch (e) { return false; }
 }
 
 function driveDisconnect(){
   if (DRIVE.accessToken && window.google?.accounts?.oauth2) {
     try { google.accounts.oauth2.revoke(DRIVE.accessToken, ()=>{}); } catch(e){}
   }
-  DRIVE.accessToken = null; DRIVE.ready = false; DRIVE.fileId = null;
+  if (DRIVE.refreshTimer) { clearTimeout(DRIVE.refreshTimer); DRIVE.refreshTimer = null; }
+  DRIVE.accessToken = null; DRIVE.ready = false; DRIVE.fileId = null; DRIVE.tokenExpiry = 0;
   localStorage.removeItem("wwp:driveEnabled");
   updateDriveButtons();
   driveSetStatus("off");
 }
 
-async function driveApi(path, opts){
+async function driveApi(path, opts, _retried){
   opts = opts || {};
+  await driveEnsureToken();
   opts.headers = Object.assign({ "Authorization": "Bearer " + DRIVE.accessToken }, opts.headers || {});
   const res = await fetch("https://www.googleapis.com/" + path, opts);
-  if (res.status === 401) { DRIVE.ready = false; throw new Error("auth-expired"); }
+  if (res.status === 401) {
+    DRIVE.accessToken = null; DRIVE.tokenExpiry = 0;
+    if (!_retried) {
+      // token scaduto: provo un refresh silenzioso e ripeto una volta
+      const ok = await driveEnsureToken();
+      if (ok) { const o2 = Object.assign({}, opts); delete o2.headers; return driveApi(path, o2, true); }
+    }
+    DRIVE.ready = false; throw new Error("auth-expired");
+  }
   return res;
 }
 
@@ -6606,7 +6807,10 @@ async function driveInitialSync(){
       else driveSetStatus("synced");
     } else { await driveUpload(); driveSetStatus("synced", lang==="it"?"Backup iniziale creato":"Initial backup created"); }
   } catch(e) {
-    if (String(e.message).includes("auth")) { driveSetStatus("off", lang==="it"?"Ricollega Drive":"Reconnect Drive"); updateDriveButtons(); }
+    if (String(e.message).includes("auth") || String(e.message).includes("silent")) {
+      DRIVE.ready = false; updateDriveButtons();
+      driveSetStatus("off", lang==="it"?"Tocca Collega per riprendere":"Tap Connect to resume");
+    }
     else driveSetStatus("error", e.message);
   }
 }
@@ -6620,7 +6824,10 @@ function driveScheduleSync(){
     if (!navigator.onLine) { driveSetStatus("offline"); return; }
     try { await driveUpload(); driveSetStatus("synced"); }
     catch(e) {
-      if (String(e.message).includes("auth")) { driveSetStatus("off", lang==="it"?"Ricollega Drive":"Reconnect Drive"); updateDriveButtons(); }
+      if (String(e.message).includes("auth") || String(e.message).includes("silent")) {
+        DRIVE.ready = false; updateDriveButtons();
+        driveSetStatus("off", lang==="it"?"Tocca Collega per riprendere":"Tap Connect to resume");
+      }
       else driveSetStatus("error", e.message);
     }
   }, 2500);
@@ -6648,7 +6855,7 @@ function openDriveSetup(){
     localStorage.setItem("wwp:driveClientId", trimmed);
     DRIVE.CLIENT_ID = trimmed;
     toast(lang==="it"?"✅ Client ID salvato":"✅ Client ID saved");
-    driveConnect(true);
+    driveConnect(true).then(() => driveInitialSync()).catch(()=>{});
   }
 }
 
@@ -6659,7 +6866,10 @@ function openDriveSetup(){
   const s = document.getElementById("driveSyncNowBtn");
   const g = document.getElementById("driveSetupBtn");
   const i = document.getElementById("pwaInstallBtn");
-  if (c) c.addEventListener("click", () => driveConnect(true));
+  if (c) c.addEventListener("click", async () => {
+    try { await driveConnect(true); await driveInitialSync(); }
+    catch(e) { /* l'utente ha annullato o errore già mostrato */ }
+  });
   if (d) d.addEventListener("click", () => { if (confirm(lang==="it"?"Scollegare Google Drive da questo dispositivo?":"Disconnect Google Drive on this device?")) driveDisconnect(); });
   if (s) s.addEventListener("click", () => driveInitialSync());
   if (g) g.addEventListener("click", openDriveSetup);
@@ -6749,10 +6959,62 @@ if (typeof migrateGalleryImages === "function") {
 // Inizializza lo stato sync e riconnetti Drive se era già attivo.
 driveSetStatus(localStorage.getItem("wwp:driveEnabled") ? "connecting" : "off");
 updateDriveButtons();
-if (localStorage.getItem("wwp:driveEnabled") && DRIVE.CLIENT_ID) {
-  // Riconnessione silenziosa (l'utente potrebbe dover ri-autorizzare).
-  setTimeout(() => driveConnect(false), 800);
+
+async function driveSilentResume(){
+  if (!(localStorage.getItem("wwp:driveEnabled") && DRIVE.CLIENT_ID)) return;
+  try {
+    await driveConnect(false);      // riconnessione silenziosa (nessun popup)
+    await driveInitialSync();        // allinea subito i dati
+  } catch (e) {
+    // la sessione Google non è ripristinabile in silenzio (tipico su Safari/iPhone):
+    // mostro che basta un tocco, senza disconnettere nulla.
+    DRIVE.ready = false;
+    updateDriveButtons();
+    driveSetStatus("off", lang==="it" ? "Tocca Collega per riprendere" : "Tap Connect to resume");
+  }
 }
+
+if (localStorage.getItem("wwp:driveEnabled") && DRIVE.CLIENT_ID) {
+  setTimeout(() => { driveSilentResume(); }, 800);
+}
+
+// Riprende/sincronizza quando l'app torna in primo piano (chiave su iPhone).
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (!localStorage.getItem("wwp:driveEnabled") || !DRIVE.CLIENT_ID) return;
+  if (DRIVE.ready) { driveInitialSync(); } else { driveSilentResume(); }
+});
+
+// Salvataggio "best effort" quando la pagina viene nascosta/chiusa (mobile).
+function driveFlushOnHide(){
+  if (!DRIVE.ready || !DRIVE.accessToken || !navigator.onLine) return;
+  try {
+    buildSyncPayload().then(payload => {
+      const body = JSON.stringify(payload);
+      const boundary = "-------nicws" + Date.now();
+      const meta = DRIVE.fileId ? { name: DRIVE.FILE_NAME } : { name: DRIVE.FILE_NAME, parents:["appDataFolder"] };
+      const multipart =
+        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
+        JSON.stringify(meta) +
+        `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` + body +
+        `\r\n--${boundary}--`;
+      const method = DRIVE.fileId ? "PATCH" : "POST";
+      const url = "https://www.googleapis.com/" + (DRIVE.fileId
+        ? `upload/drive/v3/files/${DRIVE.fileId}?uploadType=multipart`
+        : `upload/drive/v3/files?uploadType=multipart`);
+      // keepalive: il browser completa l'invio anche se la pagina si chiude
+      fetch(url, {
+        method,
+        headers: { "Authorization": "Bearer " + DRIVE.accessToken, "Content-Type": `multipart/related; boundary=${boundary}` },
+        body: multipart,
+        keepalive: true,
+      }).catch(()=>{});
+    }).catch(()=>{});
+  } catch(e) {}
+}
+window.addEventListener("pagehide", driveFlushOnHide);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") driveFlushOnHide(); });
+
 
 </script>
 </body>
