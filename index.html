@@ -1557,14 +1557,40 @@
   @media(max-width:760px){ .gallery-page-head{flex-direction:column;} .gallery-page-grid{grid-template-columns:1fr;} }
   @media(max-width:760px){ .gallery-top{align-items:flex-start; flex-direction:column;} .gallery-actions{width:100%; justify-content:flex-end;} .gallery-strip{grid-template-columns:1fr;} .gallery-name{max-width:100%;} }
 
-  .vault-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
-  .vault-card { position:relative; overflow:hidden; border-radius:20px; padding:16px; min-height:128px; background:var(--glass); border:1px solid var(--glass-border); box-shadow:0 8px 32px rgba(0,8,24,.28), inset 0 1px 0 rgba(255,255,255,.16); }
-  .vault-card::before { content:""; position:absolute; top:-50%; right:-30%; width:150px; height:150px; border-radius:50%; filter:blur(44px); background:var(--v-glow,#38bdf8); opacity:.18; pointer-events:none; }
-  .vault-lbl { position:relative; z-index:1; font-size:10px; font-weight:700; letter-spacing:1.3px; text-transform:uppercase; color:var(--faint); margin-bottom:10px; }
-  .vault-val { position:relative; z-index:1; font-size:clamp(20px,2.4vw,30px); font-weight:700; line-height:1.05; word-break:break-word; }
-  .vault-sub { position:relative; z-index:1; margin-top:9px; color:var(--muted); font-size:12px; }
-  .vault-card .data-btn { position:relative; z-index:1; width:100%; justify-content:center; margin-top:12px; display:flex; }
+  .vault-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
+  .vault-card { position:relative; overflow:hidden; border-radius:22px; padding:20px 20px 18px; min-height:150px; display:flex; flex-direction:column; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%); box-shadow:0 8px 32px rgba(0,8,24,.35), inset 0 1px 0 rgba(255,255,255,.18); }
+  .vault-card::before { content:""; position:absolute; top:-50%; right:-30%; width:170px; height:170px; border-radius:50%; filter:blur(48px); background:var(--v-glow,#38bdf8); opacity:.20; pointer-events:none; }
+  .vault-lbl { position:relative; z-index:1; font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:var(--faint); margin-bottom:12px; }
+  .vault-val { position:relative; z-index:1; font-size:clamp(26px,3.4vw,40px); font-weight:800; line-height:1.02; letter-spacing:-0.8px; word-break:break-word; }
+  .vault-sub { position:relative; z-index:1; margin-top:9px; color:var(--muted); font-size:12px; line-height:1.35; }
+  /* barra glow azzurra in basso, come lo screenshot Revenue Hub */
+  .vault-bar { position:relative; z-index:1; margin-top:auto; padding-top:16px; }
+  .vault-bar > i { display:block; height:6px; border-radius:999px; background:var(--v-glow,#38bdf8); box-shadow:0 0 14px var(--v-glow,#38bdf8); opacity:.9; }
+  .vault-card .data-btn { position:relative; z-index:1; width:100%; justify-content:center; margin-top:14px; display:flex; }
   .vault-card.danger { border-color:rgba(248,113,113,.28); }
+
+  /* ---- Pulsante centrale DATA VAULT (apre la pagina dedicata) ---- */
+  .vault-cta-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; margin:38px auto 30px; text-align:center; }
+  .vault-cta { position:relative; display:inline-flex; align-items:center; gap:12px; padding:16px 30px; border-radius:18px; cursor:pointer; font-weight:800; font-size:clamp(15px,2vw,18px); letter-spacing:2px; text-transform:uppercase; color:#eaf6ff; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%); box-shadow:0 10px 36px rgba(0,8,24,.4), inset 0 1px 0 rgba(255,255,255,.2); transition:transform .15s ease, box-shadow .2s ease, background .2s ease; -webkit-tap-highlight-color:transparent; }
+  .vault-cta::before { content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; background:linear-gradient(135deg, rgba(56,189,248,.6), rgba(167,139,250,.35) 60%, transparent); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
+  .vault-cta:hover { background:var(--glass-strong); box-shadow:0 14px 44px rgba(56,189,248,.28), inset 0 1px 0 rgba(255,255,255,.25); transform:translateY(-2px); }
+  .vault-cta:active { transform:scale(.97); }
+  .vault-cta-ico { display:flex; align-items:center; justify-content:center; }
+  .vault-cta-ico svg { width:22px; height:22px; color:#7dd3fc; }
+  .vault-cta-sub { color:var(--muted); font-size:12px; letter-spacing:.3px; }
+
+  /* ---- Header pagina dedicata Vault ---- */
+  .vault-page-head { display:flex; align-items:center; gap:13px; margin-bottom:22px; }
+  .vault-page-head .vp-ico { width:42px; height:42px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border-radius:14px; background:var(--glass); border:1px solid var(--glass-border); }
+  .vault-page-head .vp-ico svg { width:22px; height:22px; color:#7dd3fc; }
+  .vault-page-head h2 { margin:0; font-size:clamp(22px,3.2vw,30px); font-weight:800; letter-spacing:1px; }
+  .vault-page-head .vp-sub { display:block; margin-top:3px; font-size:12px; font-weight:500; letter-spacing:.3px; color:var(--muted); text-transform:none; }
+
+  @media (max-width:560px) {
+    .vault-grid { grid-template-columns:1fr; gap:12px; }
+    .vault-card { min-height:auto; padding:18px; }
+    .vault-cta { width:100%; justify-content:center; padding:16px 20px; }
+  }
 
 
 
@@ -1744,6 +1770,21 @@
   .header-icons { order: 2; margin-left: auto !important; }
   .search-wrap { order: 3; flex: 1 1 100% !important; margin-left: 0 !important; }
   .hicon { width: 36px !important; height: 36px !important; }
+}
+
+/* ---------- FIX responsive mobile: pagine interne (pageView) + DATA VAULT ---------- */
+@media (max-width: 760px) {
+  .page-content { padding: 18px 12px 70px !important; }
+  .page-bar { top: 8px; margin: 8px auto 0; padding: 9px 13px; border-radius: 16px; }
+  /* griglie hub/stat/fin: una o due colonne fluide invece di larghezze minime fisse */
+  .fin-dash, .hub-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+}
+@media (max-width: 480px) {
+  .fin-dash, .hub-grid { grid-template-columns: 1fr !important; }
+  .vault-page-head h2 { font-size: 22px; }
+  .page-bar .pill { font-size: 14px; }
+  /* card finanziarie: lascio andare a capo i numeri lunghi senza tagliarli */
+  .fin-card .fin-val { white-space: normal !important; }
 }
 
 /* More compact gallery area */
@@ -2075,21 +2116,32 @@ body[data-theme="white"] .date-lite-month { color:#11314f; }
   </h2>
   <div class="pay-card glass" id="otherPayCard"></div>
 
-  <h2 class="section-title sec-minor" id="dataSection"><span class="ico">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
-      </svg>
-    </span> <span data-i18n="vault.title">DATA VAULT</span>
-    <span class="section-sub" data-i18n="vault.sub">backup, export and safety control center</span>
-  </h2>
-  <div class="vault-grid" id="dataVault">
-    <div class="vault-card" style="--v-glow:#38bdf8"><div class="vault-lbl" data-i18n="vault.last">Last backup</div><div class="vault-val" id="vaultLast">—</div><div class="vault-sub" id="vaultLastSub" data-i18n="vault.never">No backup yet</div></div>
-    <div class="vault-card" style="--v-glow:#a78bfa"><div class="vault-lbl" data-i18n="vault.changes">Changes</div><div class="vault-val" id="vaultChanges">0</div><div class="vault-sub" data-i18n="vault.changes.sub">changes since start</div></div>
-    <div class="vault-card" style="--v-glow:#34d399"><div class="vault-lbl" data-i18n="vault.export">Export backup</div><div class="vault-val">JSON</div><div class="vault-sub" data-i18n="vault.export.sub">Download all workspace data</div><button class="data-btn" id="exportBackupBtn" data-i18n="btn.export">⬇ Export JSON backup</button></div>
-    <div class="vault-card" style="--v-glow:#7dd3fc"><div class="vault-lbl" data-i18n="vault.import">Import backup</div><div class="vault-val">JSON</div><div class="vault-sub" data-i18n="vault.import.sub">Restore a saved backup</div><button class="data-btn" id="importBackupBtn" data-i18n="btn.import">⬆ Import JSON backup</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>
-    <div class="vault-card danger" style="--v-glow:#f87171"><div class="vault-lbl" data-i18n="vault.reset">Reset data</div><div class="vault-val" data-i18n="vault.reset.short">Reset</div><div class="vault-sub" data-i18n="vault.reset.sub">Danger zone</div><button class="data-btn danger" id="resetDataBtn" data-i18n="btn.reset">🗑 Reset data</button></div>
-    <div class="vault-card" style="--v-glow:#38b6ff"><div class="vault-lbl" data-i18n="vault.app">App</div><div class="vault-val">PWA</div><div class="vault-sub" data-i18n="vault.app.sub">Install on your phone</div><button class="data-btn" id="pwaInstallBtn" style="display:none" data-i18n="btn.install">📲 Install app</button></div>
-    <div class="vault-card" style="--v-glow:#fbbf24"><div class="vault-lbl" data-i18n="vault.drive">Google Drive</div><div class="vault-val" style="display:flex;align-items:center;gap:8px;font-size:0.95rem"><span id="driveDot" style="width:11px;height:11px;border-radius:50%;background:#64748b;box-shadow:0 0 10px #64748b;flex:0 0 auto"></span><span id="driveStatusText">Non collegato</span></div><div class="vault-sub" id="driveStatusSub" data-i18n="vault.drive.sub">Sync between Mac and iPhone</div><button class="data-btn" id="driveConnectBtn" data-i18n="btn.driveConnect">🔗 Connect Google Drive</button><button class="data-btn" id="driveSyncNowBtn" style="display:none" data-i18n="btn.driveSyncNow">🔄 Sync now</button><button class="data-btn" id="driveDisconnectBtn" style="display:none" data-i18n="btn.driveDisconnect">✖ Disconnect</button><button class="data-btn" id="driveSetupBtn" data-i18n="btn.driveSetup">⚙ Set Client ID</button></div>
+  <!-- Pulsante centrale che apre la pagina dedicata DATA VAULT -->
+  <div class="vault-cta-wrap">
+    <button class="vault-cta" id="openVaultBtn" type="button">
+      <span class="vault-cta-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+        </svg>
+      </span>
+      <span class="vault-cta-txt" data-i18n="vault.title">DATA VAULT</span>
+    </button>
+    <span class="vault-cta-sub" data-i18n="vault.sub">backup, export and safety control center</span>
+  </div>
+
+  <!-- Host nascosto: contiene la griglia reale del Vault con tutti gli id/listener.
+       Al click del pulsante viene spostata dentro la pagina dedicata (pageContent),
+       così tutti gli event listener restano agganciati. -->
+  <div id="vaultHost" hidden>
+    <div class="vault-grid" id="dataVault">
+      <div class="vault-card" style="--v-glow:#38bdf8"><div class="vault-lbl" data-i18n="vault.last">Last backup</div><div class="vault-val" id="vaultLast">—</div><div class="vault-sub" id="vaultLastSub" data-i18n="vault.never">No backup yet</div><div class="vault-bar"><i></i></div></div>
+      <div class="vault-card" style="--v-glow:#a78bfa"><div class="vault-lbl" data-i18n="vault.changes">Changes</div><div class="vault-val" id="vaultChanges">0</div><div class="vault-sub" data-i18n="vault.changes.sub">changes since start</div><div class="vault-bar"><i></i></div></div>
+      <div class="vault-card" style="--v-glow:#34d399"><div class="vault-lbl" data-i18n="vault.export">Export backup</div><div class="vault-val">JSON</div><div class="vault-sub" data-i18n="vault.export.sub">Download all workspace data</div><button class="data-btn" id="exportBackupBtn" data-i18n="btn.export">⬇ Export JSON backup</button></div>
+      <div class="vault-card" style="--v-glow:#7dd3fc"><div class="vault-lbl" data-i18n="vault.import">Import backup</div><div class="vault-val">JSON</div><div class="vault-sub" data-i18n="vault.import.sub">Restore a saved backup</div><button class="data-btn" id="importBackupBtn" data-i18n="btn.import">⬆ Import JSON backup</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>
+      <div class="vault-card danger" style="--v-glow:#f87171"><div class="vault-lbl" data-i18n="vault.reset">Reset data</div><div class="vault-val" data-i18n="vault.reset.short">Reset</div><div class="vault-sub" data-i18n="vault.reset.sub">Danger zone</div><button class="data-btn danger" id="resetDataBtn" data-i18n="btn.reset">🗑 Reset data</button></div>
+      <div class="vault-card" style="--v-glow:#38b6ff"><div class="vault-lbl" data-i18n="vault.app">App</div><div class="vault-val">PWA</div><div class="vault-sub" data-i18n="vault.app.sub">Install on your phone</div><button class="data-btn" id="pwaInstallBtn" style="display:none" data-i18n="btn.install">📲 Install app</button></div>
+      <div class="vault-card" style="--v-glow:#fbbf24"><div class="vault-lbl" data-i18n="vault.drive">Google Drive</div><div class="vault-val" style="display:flex;align-items:center;gap:8px;font-size:0.95rem"><span id="driveDot" style="width:11px;height:11px;border-radius:50%;background:#64748b;box-shadow:0 0 10px #64748b;flex:0 0 auto"></span><span id="driveStatusText">Non collegato</span></div><div class="vault-sub" id="driveStatusSub" data-i18n="vault.drive.sub">Sync between Mac and iPhone</div><button class="data-btn" id="driveConnectBtn" data-i18n="btn.driveConnect">🔗 Connect Google Drive</button><button class="data-btn" id="driveSyncNowBtn" style="display:none" data-i18n="btn.driveSyncNow">🔄 Sync now</button><button class="data-btn" id="driveDisconnectBtn" style="display:none" data-i18n="btn.driveDisconnect">✖ Disconnect</button><button class="data-btn" id="driveSetupBtn" data-i18n="btn.driveSetup">⚙ Set Client ID</button></div>
+    </div>
   </div>
 
   <div class="contacts contacts-premium">
@@ -5645,9 +5697,36 @@ function refreshOpenPage() {
   currentPageBuilder(elPageContent);
   elPageView.scrollTop = prev;
 }
-function closePage() { currentPageBuilder = null; elPageView.hidden = true; unlockScroll(); }
+function closePage() { currentPageBuilder = null; elPageView.hidden = true; unlockScroll(); restoreVaultHost(); }
 document.getElementById("pageBack").addEventListener("click", closePage);
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !elPageView.hidden && elOverlay.hidden) closePage(); });
+
+// ---------- DATA VAULT: pagina dedicata ----------
+// La griglia reale vive in #vaultHost (con tutti gli id/listener già agganciati).
+// Aprendo la pagina la spostiamo dentro pageContent; chiudendo la riportiamo nell'host.
+function restoreVaultHost() {
+  const host = document.getElementById("vaultHost");
+  const grid = document.getElementById("dataVault");
+  if (host && grid && grid.parentElement !== host) host.appendChild(grid);
+}
+function openDataVault() {
+  if (typeof playSfx === "function") { try { playSfx("focus"); } catch (e) {} }
+  openPage(box => {
+    const head = document.createElement("div");
+    head.className = "vault-page-head";
+    head.innerHTML = '<span class="vp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>'
+      + '<div><h2>' + t("vault.title") + '<span class="vp-sub">' + t("vault.sub") + '</span></h2></div>';
+    box.appendChild(head);
+    // sposto la griglia reale (non la clono: così i listener restano vivi)
+    const grid = document.getElementById("dataVault");
+    if (grid) box.appendChild(grid);
+    if (typeof renderDataVault === "function") { try { renderDataVault(); } catch (e) {} }
+  });
+}
+(function () {
+  const btn = document.getElementById("openVaultBtn");
+  if (btn) btn.addEventListener("click", openDataVault);
+})();
 
 // ---------- header compatto allo scroll ----------
 window.addEventListener("scroll", () => {
